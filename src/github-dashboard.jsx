@@ -253,13 +253,13 @@ function ErrorScreen({ message }) {
 
 function StatCard({ label, value, sub, icon }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md" style={{ transition: "box-shadow 0.2s" }}>
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl" style={{ background: "linear-gradient(135deg, #f0f4ff, #e0e7ff)" }}>
+    <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 flex items-center gap-3 sm:gap-4 hover:shadow-md" style={{ transition: "box-shadow 0.2s" }}>
+      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-lg sm:text-xl flex-shrink-0" style={{ background: "linear-gradient(135deg, #f0f4ff, #e0e7ff)" }}>
         {icon}
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-500">{label}</p>
+        <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
+        <p className="text-xs sm:text-sm text-gray-500">{label}</p>
         {sub && <p className="text-xs text-emerald-600 font-medium mt-0.5">{sub}</p>}
       </div>
     </div>
@@ -268,30 +268,31 @@ function StatCard({ label, value, sub, icon }) {
 
 function ProfileHeader({ profile }) {
   return (
-    <div className="px-6 pt-6 pb-4">
+    <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <img
               src={profile.avatar_url}
               alt={profile.login}
-              className="w-14 h-14 rounded-full"
+              className="w-11 h-11 sm:w-14 sm:h-14 rounded-full flex-shrink-0"
             />
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-gray-900">{profile.name || profile.login}</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{profile.name || profile.login}</h1>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500 truncate">
                 @{profile.login}
                 {profile.bio && <> &middot; {profile.bio}</>}
-                {profile.location && <> &middot; {profile.location}</>}
+                {profile.location && <span className="hidden sm:inline"> &middot; {profile.location}</span>}
               </p>
             </div>
           </div>
           <a href={profile.html_url} target="_blank" rel="noreferrer"
-            className="px-4 py-2 rounded-xl text-sm font-medium bg-gray-900 text-white hover:bg-gray-800"
+            className="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 flex-shrink-0 whitespace-nowrap"
             style={{ transition: "background 0.15s", textDecoration: "none" }}>
-            View on GitHub
+            <span className="hidden sm:inline">View on GitHub</span>
+            <span className="sm:hidden">GitHub</span>
           </a>
         </div>
       </div>
@@ -342,9 +343,9 @@ function ContributionHeatmap({ events }) {
   }, [data]);
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-base font-semibold text-gray-900">
+    <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 sm:gap-0 mb-2">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-900">
           {totalContributions} contributions in the last year
           {totalContributions === 0 && <span className="text-xs text-gray-400 font-normal ml-2">(based on public events)</span>}
         </h3>
@@ -407,9 +408,9 @@ function PinnedRepos({ repos }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
       <h3 className="text-base font-semibold text-gray-900 mb-4">Top Repositories</h3>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {pinned.map((repo) => (
           <a key={repo.name} href={repo.html_url} target="_blank" rel="noreferrer"
             className="p-4 rounded-xl border border-gray-100 hover:border-indigo-200 hover:shadow-sm block"
@@ -464,13 +465,13 @@ function AllReposTable({ repos }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-4">
         <h3 className="text-base font-semibold text-gray-900">All Repositories <span className="text-gray-400 font-normal">({reposWithStatus.length})</span></h3>
-        <div className="flex gap-1 bg-gray-50 rounded-lg p-0.5">
+        <div className="flex gap-1 bg-gray-50 rounded-lg p-0.5 overflow-x-auto">
           {["all", "active", "maintained", "archived"].map((f) => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize ${filter === f ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize whitespace-nowrap ${filter === f ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
               style={{ transition: "all 0.15s" }}>
               {f}
             </button>
@@ -480,31 +481,33 @@ function AllReposTable({ repos }) {
       <div className="space-y-2">
         {filtered.map((repo) => (
           <a key={repo.name} href={repo.html_url} target="_blank" rel="noreferrer"
-            className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 block"
+            className="block p-3 rounded-xl hover:bg-gray-50"
             style={{ transition: "background 0.15s", textDecoration: "none" }}>
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: langColors[repo.language] || "#6b7280" }} />
-              <div className="min-w-0">
-                <p className="font-medium text-gray-900 text-sm">{repo.name}</p>
-                <p className="text-xs text-gray-500 truncate">{repo.description || "No description"}</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: langColors[repo.language] || "#6b7280" }} />
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 text-sm">{repo.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{repo.description || "No description"}</p>
+                </div>
               </div>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium text-center flex-shrink-0 ml-2 ${
+                repo.status === "active" ? "bg-emerald-50 text-emerald-700" :
+                repo.status === "maintained" ? "bg-blue-50 text-blue-700" :
+                "bg-gray-50 text-gray-500"
+              }`}>
+                {repo.status}
+              </span>
             </div>
-            <div className="flex items-center gap-4 flex-shrink-0">
+            <div className="flex items-center gap-3 mt-1.5 ml-5 sm:ml-6">
               <span className="text-xs text-gray-500">{repo.language || "—"}</span>
               <div className="flex items-center gap-1">
                 <span style={{ color: "#f59e0b", fontSize: "12px" }}>&#9733;</span>
                 <span className="text-xs text-gray-600">{repo.stargazers_count}</span>
               </div>
               {repo.forks_count > 0 && <span className="text-xs text-gray-500">{repo.forks_count} forks</span>}
-              <span className="text-xs text-gray-400 w-24 text-right">
+              <span className="text-xs text-gray-400">
                 {new Date(repo.pushed_at || repo.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-              </span>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium w-20 text-center ${
-                repo.status === "active" ? "bg-emerald-50 text-emerald-700" :
-                repo.status === "maintained" ? "bg-blue-50 text-blue-700" :
-                "bg-gray-50 text-gray-500"
-              }`}>
-                {repo.status}
               </span>
             </div>
           </a>
@@ -519,7 +522,7 @@ function RecentTimeline({ events }) {
 
   if (activity.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
         <h3 className="text-base font-semibold text-gray-900 mb-4">Recent Activity</h3>
         <p className="text-sm text-gray-500">No recent public activity.</p>
       </div>
@@ -527,7 +530,7 @@ function RecentTimeline({ events }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
       <h3 className="text-base font-semibold text-gray-900 mb-4">Recent Activity</h3>
       <div className="space-y-1">
         {activity.map((item, i) => (
@@ -575,14 +578,14 @@ export default function GitHubDashboard() {
       <ProfileHeader profile={profile} />
 
       {/* Tab Nav */}
-      <div className="px-6 pb-2">
+      <div className="px-4 sm:px-6 pb-2">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-sm border border-gray-100 w-fit">
+          <div className="flex items-center gap-1 sm:gap-2 bg-white rounded-xl p-1 shadow-sm border border-gray-100 w-fit">
             {["overview", "repos", "activity"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium capitalize ${activeTab === tab ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:text-gray-700"}`}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium capitalize ${activeTab === tab ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:text-gray-700"}`}
                 style={{ transition: "all 0.15s" }}
               >
                 {tab}
@@ -592,13 +595,13 @@ export default function GitHubDashboard() {
         </div>
       </div>
 
-      <div className="px-6 pb-8 pt-4">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="px-4 sm:px-6 pb-8 pt-4">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
 
           {/* Overview Tab */}
           {activeTab === "overview" && (
             <>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <StatCard icon="&#128218;" label="Repositories" value={profile.public_repos} />
                 <StatCard icon="&#11088;" label="Stars Earned" value={totalStars} />
                 <StatCard icon="&#128101;" label="Followers" value={profile.followers} />
@@ -609,8 +612,8 @@ export default function GitHubDashboard() {
               <PinnedRepos repos={repos} />
 
               {/* Charts Row */}
-              <div className="grid grid-cols-3 gap-6">
-                <div className="col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className="lg:col-span-2 bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
                   <h3 className="text-base font-semibold text-gray-900 mb-1">Recent Weekly Activity</h3>
                   <p className="text-sm text-gray-500 mb-4">Commits, PRs, and issues from public events</p>
                   <ResponsiveContainer width="100%" height={280}>
@@ -641,7 +644,7 @@ export default function GitHubDashboard() {
                   </ResponsiveContainer>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
                   <h3 className="text-base font-semibold text-gray-900 mb-1">Languages</h3>
                   <p className="text-sm text-gray-500 mb-4">Across all repos</p>
                   <ResponsiveContainer width="100%" height={180}>
