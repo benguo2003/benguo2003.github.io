@@ -7,7 +7,7 @@ import { Highlights, WeekdayRhythm, YearByYear } from "./components/Insights";
 import Languages from "./components/Languages";
 import { ReposTable, TopRepos, enrichRepos } from "./components/Repos";
 import StatTiles from "./components/StatTiles";
-import { Card, Icon, Segmented } from "./components/ui";
+import { Card, Segmented } from "./components/ui";
 import { buildLanguageColors } from "./lib/colors";
 import { USERNAME, useGitHubData } from "./lib/github";
 import {
@@ -137,7 +137,7 @@ function derive({ profile, repos, events, calendar, details }) {
 }
 
 export default function App() {
-  const { data, loading, error, refreshing, refresh } = useGitHubData();
+  const { data, loading, error, refresh } = useGitHubData();
   const [tab, setTab] = useHashTab();
   const view = useMemo(() => (data ? derive(data) : null), [data]);
 
@@ -203,20 +203,6 @@ export default function App() {
             {tab === "repos" && <ReposTable repos={view.enriched} colorOf={view.colors.colorOf} />}
             {tab === "activity" && <ActivityFeed events={data.events} />}
           </main>
-
-          <footer className="mt-10 flex flex-col items-center gap-2 text-center font-mono text-[11px] text-muted">
-            {error && <p className="text-bad">Showing cached data: {error}</p>}
-            <p>
-              Live from the GitHub API · contributions via{" "}
-              <a className="underline decoration-dotted underline-offset-2 hover:text-ink" href="https://github.com/grubersjoe/github-contributions-api" target="_blank" rel="noreferrer">
-                github-contributions-api
-              </a>
-            </p>
-            <button onClick={() => refresh(true)} disabled={refreshing} className="flex items-center gap-1.5 hover:text-ink disabled:opacity-50">
-              <Icon name="refresh" size={12} className={refreshing ? "animate-spin" : ""} />
-              {refreshing ? "Refreshing…" : `Updated ${relativeTime(new Date(data.fetchedAt).toISOString())}`}
-            </button>
-          </footer>
         </>
       )}
     </div>

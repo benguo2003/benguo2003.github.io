@@ -1,8 +1,9 @@
 # dependencies
 /node_modules
 
-# production build
+# production build and its generated data snapshot
 /dist
+/public/data.json
 
 # misc
 .DS_Store

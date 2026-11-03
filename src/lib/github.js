@@ -1,119 +1,72 @@
 import { useCallback, useEffect, useState } from "react";
+import { fetchCore, fetchRepoDetails } from "./fetchers";
 import { normalizeCalendar } from "./stats";
 
-export const USERNAME = "benguo2003";
-const API = "https://api.github.com";
-const CONTRIBUTIONS_API = `https://github-contributions-api.jogruber.de/v4/${USERNAME}?y=all`;
+export { USERNAME } from "./fetchers";
 
-const CACHE_KEY = `gh-dashboard:v2:${USERNAME}`;
-const DETAILS_KEY = `gh-dashboard:v2:${USERNAME}:repo-details`;
+const CACHE_KEY = "gh-dashboard:v3";
 const TTL_MS = 15 * 60 * 1000;
 
-function readStorage(key) {
+function readCache() {
   try {
-    return JSON.parse(localStorage.getItem(key));
+    return JSON.parse(localStorage.getItem(CACHE_KEY));
   } catch {
     return null;
   }
 }
 
-function writeStorage(key, value) {
+function writeCache(value) {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(CACHE_KEY, JSON.stringify(value));
   } catch {
     // Storage full or blocked; the dashboard still works uncached.
   }
 }
 
-async function getJSON(url) {
-  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
-  if (res.status === 204) return null;
-  if (!res.ok) {
-    const limited = res.status === 403 || res.status === 429;
-    throw new Error(limited ? "GitHub API rate limit reached, try again in a few minutes." : `Request failed (${res.status})`);
-  }
-  return res.json();
-}
-
-/**
- * Per-repo languages (bytes) and the user's commit count. These only change when
- * a repo is pushed to, so they're cached by pushed_at and survive the main TTL.
- */
-async function loadRepoDetails(repos) {
-  const cached = readStorage(DETAILS_KEY) || {};
-  const next = {};
-  await Promise.all(
-    repos
-      .filter((r) => !r.fork)
-      .map(async (repo) => {
-        const hit = cached[repo.name];
-        if (hit && hit.pushedAt === repo.pushed_at) {
-          next[repo.name] = hit;
-          return;
-        }
-        try {
-          const [languages, contributors] = await Promise.all([
-            getJSON(`${API}/repos/${USERNAME}/${repo.name}/languages`),
-            getJSON(`${API}/repos/${USERNAME}/${repo.name}/contributors?per_page=100`),
-          ]);
-          const me = (contributors || []).find((c) => c.login?.toLowerCase() === USERNAME.toLowerCase());
-          next[repo.name] = {
-            pushedAt: repo.pushed_at,
-            languages: languages || {},
-            commits: me?.contributions ?? 0,
-          };
-        } catch {
-          if (hit) next[repo.name] = hit; // stale beats nothing
-        }
-      })
-  );
-  writeStorage(DETAILS_KEY, next);
-  return next;
-}
-
-async function loadCalendar() {
+/** The snapshot baked in at build time (scripts/snapshot.mjs), served from this site. */
+async function loadSnapshot() {
   try {
-    const res = await fetch(CONTRIBUTIONS_API);
+    const res = await fetch(`${import.meta.env.BASE_URL}data.json`, { cache: "no-cache" });
     if (!res.ok) return null;
-    const json = await res.json();
-    return normalizeCalendar(json.contributions || []);
+    const snap = await res.json();
+    // Re-clip the calendar so days after the build don't read as future dates.
+    return snap.calendar ? { ...snap, calendar: normalizeCalendar(snap.calendar) } : snap;
   } catch {
     return null;
   }
 }
 
-async function loadAll() {
-  const [profile, repos, events, calendar] = await Promise.all([
-    getJSON(`${API}/users/${USERNAME}`),
-    getJSON(`${API}/users/${USERNAME}/repos?per_page=100&sort=pushed`),
-    getJSON(`${API}/users/${USERNAME}/events/public?per_page=100`).catch(() => []),
-    loadCalendar(),
-  ]);
-  const details = await loadRepoDetails(repos);
-  return { profile, repos, events: events || [], calendar, details, fetchedAt: Date.now() };
-}
-
+/**
+ * Shows the newest data on hand right away (local cache or the deployed snapshot),
+ * then refreshes live from GitHub in the background. A failed refresh keeps what's
+ * already on screen, so rate limits never blank the page.
+ */
 export function useGitHubData() {
   const [state, setState] = useState(() => {
-    const cached = readStorage(CACHE_KEY);
-    return { data: cached, loading: !cached, error: null, refreshing: false };
+    const cached = readCache();
+    return { data: cached, loading: !cached, error: null };
   });
 
   const refresh = useCallback(async (force = false) => {
-    const cached = readStorage(CACHE_KEY);
-    if (!force && cached && Date.now() - cached.fetchedAt < TTL_MS) {
-      setState({ data: cached, loading: false, error: null, refreshing: false });
+    let base = readCache();
+    if (!force && base && Date.now() - base.fetchedAt < TTL_MS) {
+      setState({ data: base, loading: false, error: null });
       return;
     }
-    setState((s) => ({ ...s, refreshing: true, error: null }));
+
+    const snapshot = await loadSnapshot();
+    if (snapshot && (!base || snapshot.fetchedAt > base.fetchedAt)) base = snapshot;
+    setState({ data: base, loading: !base, error: null });
+
     try {
-      const data = await loadAll();
-      // Keep the last good calendar if the contributions service hiccups.
-      if (!data.calendar && cached?.calendar) data.calendar = cached.calendar;
-      writeStorage(CACHE_KEY, data);
-      setState({ data, loading: false, error: null, refreshing: false });
+      const core = await fetchCore();
+      const { details } = await fetchRepoDetails(core.repos, base?.details);
+      const data = { ...core, details, fetchedAt: Date.now() };
+      if (!data.calendar && base?.calendar) data.calendar = base.calendar;
+      writeCache(data);
+      setState({ data, loading: false, error: null });
     } catch (err) {
-      setState({ data: cached, loading: false, error: err.message, refreshing: false });
+      setState({ data: base, loading: false, error: err.message });
     }
   }, []);
 

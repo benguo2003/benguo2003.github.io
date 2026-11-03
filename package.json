@@ -6,6 +6,8 @@
   "homepage": "https://benguo2003.github.io",
   "scripts": {
     "dev": "vite",
+    "snapshot": "node scripts/snapshot.mjs",
+    "prebuild": "npm run snapshot",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
