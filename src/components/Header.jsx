@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { flushSync } from "react-dom";
+import { useRef, useState } from "react";
 import { relativeTime } from "../lib/stats";
+import { playThemeTransition } from "../lib/themeTransition";
 import { Icon } from "./ui";
 
 function ThemeToggle() {
   const [theme, setTheme] = useState(() => document.documentElement.dataset.theme || "light");
+  const animating = useRef(false);
 
   const apply = (next) => {
     document.documentElement.dataset.theme = next;
@@ -13,32 +14,21 @@ function ThemeToggle() {
     } catch {
       // Preference just won't persist.
     }
-    flushSync(() => setTheme(next));
+    setTheme(next);
   };
 
-  const toggle = (e) => {
+  const toggle = async (e) => {
+    if (animating.current) return;
     const next = theme === "dark" ? "light" : "dark";
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!document.startViewTransition || reduced) return apply(next);
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return apply(next);
 
-    // Grow the new theme out of the button as a circle that covers the farthest corner.
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const x = left + width / 2;
-    const y = top + height / 2;
-    const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-
-    const transition = document.startViewTransition(() => apply(next));
-    transition.ready.then(() => {
-      const timing = { duration: 850, easing: "cubic-bezier(0.76, 0, 0.24, 1)", fill: "both" };
-      document.documentElement.animate(
-        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
-        { ...timing, pseudoElement: "::view-transition-new(root)" }
-      );
-      document.documentElement.animate(
-        { transform: ["scale(1)", "scale(0.96)"], opacity: [1, 0.7] },
-        { ...timing, pseudoElement: "::view-transition-old(root)" }
-      );
-    });
+    animating.current = true;
+    try {
+      await playThemeTransition({ x: left + width / 2, y: top + height / 2, theme: next, onCovered: () => apply(next) });
+    } finally {
+      animating.current = false;
+    }
   };
 
   return (

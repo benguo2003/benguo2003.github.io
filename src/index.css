@@ -4,7 +4,8 @@
 
 /* Design tokens. Chart colors follow a CVD-validated categorical palette;
    dark mode uses its own steps rather than an automatic inversion. */
-:root {
+:root,
+[data-theme="light"] {
   color-scheme: light;
   --page: #f6f5f1;
   --surface: #fcfcfb;
@@ -36,7 +37,9 @@
   --heat-4: #184f95;
 }
 
-:root[data-theme="dark"] {
+/* Not scoped to :root so the theme transition can read either theme's tokens
+   from a probe element. */
+[data-theme="dark"] {
   color-scheme: dark;
   --page: #0d0d0d;
   --surface: #1a1a19;
@@ -143,21 +146,6 @@
 @keyframes reveal {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
-}
-
-/* Theme switch: the new theme is revealed by a circle animated from JS (see
-   ThemeToggle); disable the default cross-fade so only that motion plays. */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-::view-transition-old(root) {
-  z-index: 0;
-  transform-origin: center;
-}
-::view-transition-new(root) {
-  z-index: 1;
 }
 
 .theme-icon {
