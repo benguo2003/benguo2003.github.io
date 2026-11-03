@@ -3,12 +3,12 @@
 // it's covered, then a second wave breaks the graph apart to reveal it. Drawn on
 // one canvas (no page snapshots), so it stays cheap at 4K.
 
-const COVER_SPREAD = 340; // ms for the cover wave to cross the screen
-const REVEAL_SPREAD = 380;
-const JITTER = 80; // per-tile random delay, so the wave looks organic
-const TILE_IN = 240;
-const TILE_OUT = 260;
-const HOLD = 110; // linger on the full-screen graph while the theme flips
+const COVER_SPREAD = 240; // ms for the cover wave to cross the screen
+const REVEAL_SPREAD = 260;
+const JITTER = 60; // per-tile random delay, so the wave looks organic
+const TILE_IN = 180;
+const TILE_OUT = 190;
+const HOLD = 70; // linger on the full-screen graph while the theme flips
 const SHADES = 16; // colors are quantized so tiles can be batched per fill
 const LEVEL_ODDS = [0.36, 0.3, 0.18, 0.1, 0.06]; // how often each heat level appears
 
